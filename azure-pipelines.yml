@@ -39,7 +39,7 @@ stages:
   jobs:
   - deployment: DeployWebApp
     displayName: 'Deploy WAR to Azure Web App'
-    environment: $(environmentName)
+    environment: 'QA'
     strategy:
       runOnce:
         deploy:
