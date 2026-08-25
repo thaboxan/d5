@@ -48,4 +48,4 @@ stages:
             inputs:
               azureSubscription: '$(azureSubscription)'
               appName: '$(webAppName)'
-              package: '$(Pipeline.Workspace)/warfile/*.war'
+              package: '$(Pipeline.Workspace)/warfile/**/*.war'
