@@ -5,8 +5,10 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  webAppName: 'devopsDemox'
-  environmentName: 'QA'
+  qaWebAppName: 'devopsDemox'
+  releaseWebAppName: 'devopsDemox-prod'
+  environmentQA: 'QA'
+  environmentRelease: 'Release'
   azureSubscription: 'demo-vn'
 
 stages:
@@ -28,18 +30,19 @@ stages:
       inputs:
         Contents: '**/*.war'
         TargetFolder: '$(build.artifactstagingdirectory)'
+        flattenFolders: true
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'warfile'
         publishLocation: 'Container'
 
-- stage: Deploy
+- stage: DeployQA
   dependsOn: Build
   jobs:
-  - deployment: DeployWebApp
-    displayName: 'Deploy WAR to Azure Web App'
-    environment: 'QA'
+  - deployment: DeployToQA
+    displayName: 'Deploy WAR to QA'
+    environment: $(environmentQA)
     strategy:
       runOnce:
         deploy:
@@ -47,5 +50,21 @@ stages:
           - task: AzureWebApp@1
             inputs:
               azureSubscription: '$(azureSubscription)'
-              appName: '$(webAppName)'
+              appName: '$(qaWebAppName)'
+              package: '$(Pipeline.Workspace)/warfile/**/*.war'
+
+- stage: DeployRelease
+  dependsOn: DeployQA
+  jobs:
+  - deployment: DeployToRelease
+    displayName: 'Deploy WAR to Release'
+    environment: $(environmentRelease)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appName: '$(releaseWebAppName)'
               package: '$(Pipeline.Workspace)/warfile/**/*.war'
